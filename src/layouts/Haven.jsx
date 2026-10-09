@@ -124,10 +124,20 @@ function Hero() {
     { img: set.img, kicker: 'سلاسل ومجموعات كاملة', a: set.title, b: 'في طبعة المجلدات', text: set.desc, to: '/shop?sets=1', cta: 'كل السلاسل' },
   ]
   const [i, setI] = useState(0)
+  const [paused, setPaused] = useState(false)
   const s = slides[i]
   const step = (d) => setI((i + d + slides.length) % slides.length)
+  // Slides advance on their own. The timer restarts on every change, so a manual step gets
+  // its full turn; it waits while the reader hovers or tabs in, and never runs for people
+  // who asked their device for less motion.
+  useEffect(() => {
+    if (paused || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const t = setTimeout(() => setI((k) => (k + 1) % slides.length), 6000)
+    return () => clearTimeout(t)
+  }, [i, paused, slides.length])
   return (
-    <section className="h-hero" aria-roledescription="carousel" aria-label="مختارات المكتبة">
+    <section className="h-hero" aria-roledescription="carousel" aria-label="مختارات المكتبة"
+      onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)} onFocus={() => setPaused(true)} onBlur={() => setPaused(false)}>
       {slides.map((x, k) => <img key={x.img} src={x.img} alt="" className={k === i ? 'on' : ''} />)}
       <div className="wrap h-hero-text" key={i}>
         <p className="h-kicker">{s.kicker}</p>
@@ -139,7 +149,7 @@ function Hero() {
         </div>
       </div>
       <div className="h-hero-nav">
-        <span aria-live="polite">{two(i + 1)} / {two(slides.length)}</span>
+        <span>{two(i + 1)} / {two(slides.length)}</span>
         <button type="button" onClick={() => step(-1)} aria-label="الشريحة السابقة"><Icon name="back" size={16} /></button>
         <button type="button" onClick={() => step(1)} aria-label="الشريحة التالية"><Icon name="back" size={16} /></button>
       </div>
