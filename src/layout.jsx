@@ -7,6 +7,7 @@ export const LAYOUTS = [
   { id: 'reading', name: 'غرفة القراءة', note: 'هادئ، كصفحات مجلة أدبية' },
   { id: 'shelf', name: 'الرف', note: 'رفوف تتصفحها كأنك في المكتبة' },
   { id: 'night', name: 'ليل وسط البلد', note: 'داكن، والصور في الصدارة' },
+  { id: 'haven', name: 'المكتبة الذهبية', note: 'فحمي وكريمي وذهبي، بطابع كلاسيكي' },
 ]
 const valid = (id) => LAYOUTS.some((l) => l.id === id) && id
 

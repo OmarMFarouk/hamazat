@@ -9,6 +9,7 @@ import './layout.css'
 import './layouts/reading.css'
 import './layouts/shelf.css'
 import './layouts/night.css'
+import './layouts/haven.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

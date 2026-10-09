@@ -35,6 +35,10 @@
 .lay-night i:nth-child(1) { inset: 0 auto 0 0; width: 26px; background: linear-gradient(135deg, #6b4526, #2f1e12); }
 .lay-night i:nth-child(2) { top: 13px; inset-inline-start: 6px; width: 22px; height: 5px; background: #e2b88a; }
 .lay-night i:nth-child(3) { top: 23px; inset-inline-start: 6px; width: 15px; height: 8px; background: repeating-linear-gradient(#8a745c 0 1.500px, transparent 1.500px 4px); }
+.lay-haven { background: #fffdf8; }
+.lay-haven i:nth-child(1) { inset: 0 0 auto; height: 22px; background: linear-gradient(to left, #1b1510 55%, #6b4a2c); }
+.lay-haven i:nth-child(2) { top: 13px; inset-inline-start: 6px; width: 14px; height: 5px; background: #d9b36b; border-radius: 1px; }
+.lay-haven i:nth-child(3) { inset: auto 6px 5px; height: 13px; background: repeating-linear-gradient(90deg, #e6ded0 0 9px, transparent 9px 13px); }
 
 @media (max-width: 720px) {
   .lay { bottom: calc(68px + var(--fab-shift, 0px)); inset-inline-start: 14px; }

@@ -8,8 +8,9 @@ import Classic from './layouts/Classic.jsx'
 import Reading from './layouts/Reading.jsx'
 import Shelf from './layouts/Shelf.jsx'
 import Night from './layouts/Night.jsx'
+import Haven from './layouts/Haven.jsx'
 
-const SHELLS = { classic: Classic, reading: Reading, shelf: Shelf, night: Night }
+const SHELLS = { classic: Classic, reading: Reading, shelf: Shelf, night: Night, haven: Haven }
 
 export default function App() {
   const { pathname } = useLocation()
