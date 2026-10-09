@@ -19,11 +19,15 @@ function fromUrl() {
   return valid(new URLSearchParams(search).get('layout')) || valid(new URLSearchParams(hash.split('?')[1]).get('layout'))
 }
 
+// A link that names its layout is a pinned preview: read once at load, because the
+// router rewrites the hash on navigation, and the switcher stays hidden for the visit.
+const pinned = fromUrl()
+
 const Ctx = createContext(null)
 export const useLayout = () => useContext(Ctx)
 
 export function LayoutProvider({ children }) {
-  const [layout, setLayout] = useState(() => fromUrl() || valid(read('hz.layout')) || 'classic')
+  const [layout, setLayout] = useState(() => pinned || valid(read('hz.layout')) || 'classic')
   const [reader, setReader] = useState(() => read('hz.reader', { dark: false, size: 1 })) // reading-room preferences
 
   useEffect(() => {
@@ -40,7 +44,9 @@ export function LayoutProvider({ children }) {
   return <Ctx.Provider value={{ layout, setLayout, reader, setReader }}>{children}</Ctx.Provider>
 }
 
-export function Switcher() {
+export const Switcher = () => (pinned ? null : <SwitcherButton />)
+
+function SwitcherButton() {
   const { layout, setLayout } = useLayout()
   const { setToast } = useStore()
   const [open, setOpen] = useState(false)
