@@ -76,6 +76,22 @@ export const BOOKS = [
 export const bookById = (id) => BOOKS.find((x) => x.id === id)
 export const catName = (id) => CATEGORIES.find((c) => c.id === id)?.name
 
+// ---------- authors and search ----------
+const NO_AUTHOR = 'مجموعة مؤلفين' // anthologies: not a person, so no author page
+export const isAuthor = (name) => name !== NO_AUTHOR
+export const AUTHORS = [...new Set(BOOKS.map((b) => b.author))].filter(isAuthor)
+  .map((name) => ({ name, count: BOOKS.filter((b) => b.author === name).length }))
+  .sort((a, b) => a.name.localeCompare(b.name, 'ar'))
+export const authorTo = (name) => `/shop?author=${encodeURIComponent(name)}`
+export const othersBy = (book) => (isAuthor(book.author) ? BOOKS.filter((b) => b.author === book.author && b.id !== book.id) : [])
+
+// People type names without tashkeel or hamzas and with ه for ة. NFKD splits أ إ آ ؤ ئ
+// into a base letter plus a mark, so stripping the marks folds all of those together.
+export const norm = (s) => s.normalize('NFKD').replace(/[\u064B-\u065F\u0670\u0640]/g, '').replace(/ة/g, 'ه').replace(/ى/g, 'ي').toLowerCase().trim()
+// every typed word must appear, in any order: "توفيق احمد" finds أحمد خالد توفيق
+export const hit = (text, q) => { const h = norm(text); return norm(q).split(/\s+/).every((w) => h.includes(w)) }
+export const matches = (b, q) => hit(`${b.title} ${b.author} ${b.sub || ''}`, q)
+
 // Demo shipping zones (flat fee per zone, EGP)
 export const ZONES = [
   { id: 'cairo', name: 'القاهرة الكبرى', fee: 50, days: '١–٢ يوم', govs: ['القاهرة', 'الجيزة', 'القليوبية'] },

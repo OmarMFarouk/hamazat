@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import { AUTHORS, authorTo, isAuthor } from './data.js'
 import { useStore } from './store.jsx'
 
 export const num = (n) => Number(n).toLocaleString('ar-EG')
@@ -30,6 +31,7 @@ const PATHS = {
   home: 'M4 11l8-7 8 7v9h-5v-6H9v6H4v-9Z',
   book: 'M5 4h13v16H7a2 2 0 0 1-2-2V4Zm0 14a2 2 0 0 1 2-2h11',
   link: 'M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1',
+  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0',
   store: 'M4 10v10h16V10M3 10l2-6h14l2 6a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Z',
 }
 const FILLED = {
@@ -92,6 +94,32 @@ export function WishButton({ id, className = '' }) {
   )
 }
 
+// An author's name is always a way in to everything they wrote. `strong` keeps the
+// underline visible, for book pages where a touch user has no hover to discover it.
+export function AuthorLink({ name, className = '', strong, onClick }) {
+  if (!isAuthor(name)) return <span className={className}>{name}</span>
+  return <Link to={authorTo(name)} className={`author ${strong ? 'author-on' : ''} ${className}`} title={`كل كتب ${name}`} onClick={onClick}>{name}</Link>
+}
+
+export function AuthorHits({ authors, onPick }) {
+  return authors.map((a) => (
+    <button type="button" key={a.name} className="hit-author" onClick={() => onPick(authorTo(a.name))}>
+      <em className="hit-ico"><Icon name="user" /></em><span><b>{a.name}</b><small>مؤلف، {booksCount(a.count)}</small></span>
+    </button>
+  ))
+}
+
+export function AuthorSelect({ value, onChange }) {
+  return (
+    <label className="sort author-pick">المؤلف
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        <option value="">كل المؤلفين</option>
+        {AUTHORS.map((a) => <option key={a.name} value={a.name}>{a.name} ({num(a.count)})</option>)}
+      </select>
+    </label>
+  )
+}
+
 export function BookTile({ book }) {
   const { add } = useStore()
   return (
@@ -104,7 +132,7 @@ export function BookTile({ book }) {
       <WishButton id={book.id} className="tile-wish" />
       <div className="tile-body">
         <Link to={`/book/${book.id}`} className="tile-title">{book.title}</Link>
-        <span className="tile-author">{book.author}</span>
+        <AuthorLink name={book.author} className="tile-author" />
         <div className="tile-foot">
           <Price book={book} />
           <button type="button" className="btn btn-sm" onClick={() => add(book.id)}>أضف للسلة</button>

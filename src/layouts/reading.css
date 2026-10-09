@@ -233,3 +233,5 @@ html[data-layout=reading] .chip { border-radius: 999px; }
   html[data-layout=reading]:has(.r-buybar) { --fab-shift: 66px; }
 }
 @media (max-width: 720px) { .r-buy .btn { min-width: 110px; } }
+.r-filters-end { display: flex; align-items: center; gap: 8px 18px; flex-wrap: wrap; }
+.r-hits .hit-ico { width: 40px; height: 50px; }

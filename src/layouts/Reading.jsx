@@ -1,12 +1,12 @@
 // غرفة القراءة — a quiet, magazine-like layout: one book at a time, set like a page.
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BOOKS, CATEGORIES, FREE_SHIPPING_FROM, STORE, bookById, catName } from '../data.js'
+import { BOOKS, CATEGORIES, FREE_SHIPPING_FROM, STORE, bookById, authorTo, catName, othersBy } from '../data.js'
 import { Coupon, DeliveryStep, PaymentStep, PlaceButton, ReviewStep, STEPS, STEP_TITLES, Summary, useCheckout } from '../checkout.jsx'
 import { SORTS, bookOfWeek, countIn, useActive, useBuy, useSearch, useShop } from '../hooks.js'
 import { useLayout } from '../layout.jsx'
 import { useStore } from '../store.jsx'
-import { Empty, Icon, Price, Qty, WishButton, booksCount, money, num } from '../ui.jsx'
+import { AuthorHits, AuthorLink, AuthorSelect, Empty, Icon, Price, Qty, WishButton, booksCount, money, num } from '../ui.jsx'
 import Pages from '../Pages.jsx'
 import { ShippingCalc } from '../pages/Home.jsx'
 import { NotFound } from '../pages/Misc.jsx'
@@ -18,7 +18,7 @@ const SIZES = [0.9, 1, 1.15]
 const Ornament = () => <div className="r-orn" aria-hidden="true">ء</div>
 
 function SearchOverlay({ onClose }) {
-  const { q, setQ, hits } = useSearch(8)
+  const { q, setQ, hits, authors } = useSearch(8)
   const nav = useNavigate()
   const go = (to) => { onClose(); nav(to) }
   return (
@@ -28,12 +28,13 @@ function SearchOverlay({ onClose }) {
         <button type="button" className="r-tool" onClick={onClose} aria-label="إغلاق البحث"><Icon name="close" /></button>
       </form>
       <div className="wrap narrow r-hits">
+        <AuthorHits authors={authors} onPick={go} />
         {hits.map((b) => (
           <button type="button" key={b.id} onClick={() => go(`/book/${b.id}`)}>
             <img src={b.img} alt="" /><span><b>{b.title}</b><small>{b.author}</small></span><i>{money(b.price)}</i>
           </button>
         ))}
-        {q.trim() && !hits.length && <p>لا يوجد كتاب بهذا الاسم على رفوفنا. جرّب اسم المؤلف.</p>}
+        {q.trim() && !hits.length && !authors.length && <p>لا يوجد كتاب بهذا الاسم على رفوفنا. جرّب اسم المؤلف.</p>}
         {!q.trim() && (
           <p className="r-hits-cats">أو ابدأ من قسم: {CATEGORIES.map((c) => <button type="button" key={c.id} onClick={() => go(`/shop?cat=${c.id}`)}>{c.name}</button>)}</p>
         )}
@@ -114,7 +115,7 @@ function Entry({ book, n }) {
       <div>
         <h3><Link to={`/book/${book.id}`}>{book.title}</Link></h3>
         {book.sub && <em>{book.sub}</em>}
-        <p className="r-by">{book.author}، <Link to={`/shop?cat=${book.cat}`}>{catName(book.cat)}</Link></p>
+        <p className="r-by"><AuthorLink name={book.author} />، <Link to={`/shop?cat=${book.cat}`}>{catName(book.cat)}</Link></p>
         <p className="r-blurb">{book.desc}</p>
         <div className="r-entry-foot">
           <Price book={book} />
@@ -131,7 +132,7 @@ function Card({ book }) {
     <Link to={`/book/${book.id}`} className="r-card">
       <img src={book.img} alt="" loading="lazy" />
       <b>{book.title}</b>
-      <small>{book.sub && book.set ? book.sub : book.author}</small>
+      <small>{book.author}</small>
       <Price book={book} />
     </Link>
   )
@@ -152,7 +153,7 @@ function Home() {
           <p className="r-kicker">كتاب هذا الأسبوع</p>
           <h1>{week.title}</h1>
           {week.sub && <p className="r-sub">{week.sub}</p>}
-          <p className="r-by">{week.author}، {catName(week.cat)}</p>
+          <p className="r-by"><AuthorLink name={week.author} />، {catName(week.cat)}</p>
           <p className="r-text">{week.desc}</p>
           <div className="r-actions">
             <button type="button" className="btn" onClick={() => buy()}>{added ? <><Icon name="check" /> أُضيف إلى السلة</> : `أضف للسلة بـ ${money(week.price)}`}</button>
@@ -230,7 +231,7 @@ function Home() {
 }
 
 function Shop() {
-  const { cat, sets, sort, set, list, title, clear, key } = useShop()
+  const { cat, sets, author, sort, set, list, title, clear, key } = useShop()
   return (
     <div className="wrap r-page">
       <header className="r-page-head">
@@ -244,11 +245,14 @@ function Shop() {
           ))}
           <button type="button" aria-pressed={sets} onClick={() => set('sets', sets ? '' : '1')}>مجموعات فقط</button>
         </div>
-        <label className="sort">ترتيب
-          <select value={sort} onChange={(e) => set('sort', e.target.value === 'new' ? '' : e.target.value)}>
-            {Object.entries(SORTS).map(([k, [name]]) => <option key={k} value={k}>{name}</option>)}
-          </select>
-        </label>
+        <div className="r-filters-end">
+          <AuthorSelect value={author} onChange={(v) => set('author', v)} />
+          <label className="sort">ترتيب
+            <select value={sort} onChange={(e) => set('sort', e.target.value === 'new' ? '' : e.target.value)}>
+              {Object.entries(SORTS).map(([k, [name]]) => <option key={k} value={k}>{name}</option>)}
+            </select>
+          </label>
+        </div>
       </div>
       {list.length ? (
         <div className="r-list r-list-2" key={key}>{list.map((b) => <Entry key={b.id} book={b} />)}</div>
@@ -265,7 +269,8 @@ function Book() {
   const { buy, added } = useBuy(id)
   const [qty, setQty] = useState(1)
   if (!book) return <NotFound />
-  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id).slice(0, 6)
+  const byAuthor = othersBy(book)
+  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id && !byAuthor.includes(b)).slice(0, 6)
   const ask = `${STORE.whatsapp}?text=${encodeURIComponent(`مرحبًا، أريد الاستفسار عن كتاب «${book.title}» — ${book.author}`)}`
   return (
     <>
@@ -278,7 +283,7 @@ function Book() {
           </nav>
           <h1>{book.title}</h1>
           {book.sub && <p className="r-sub">{book.sub}</p>}
-          <p className="r-by">{book.author}</p>
+          <p className="r-by">تأليف <AuthorLink name={book.author} strong /></p>
           <div className="chips">
             {book.isNew && <span className="chip chip-new">وصل حديثًا</span>}
             {book.set && <span className="chip">مجموعة كاملة</span>}
@@ -297,7 +302,7 @@ function Book() {
           </div>
 
           <dl className="facts">
-            <div><dt>المؤلف</dt><dd>{book.author}</dd></div>
+            <div><dt>المؤلف</dt><dd><AuthorLink name={book.author} strong /></dd></div>
             <div><dt>القسم</dt><dd>{catName(book.cat)}</dd></div>
             <div><dt>التوفر</dt><dd className="ok">متوفر في المكتبة</dd></div>
             <div><dt>التوصيل</dt><dd>لجميع المحافظات، والدفع عند الاستلام</dd></div>
@@ -305,6 +310,15 @@ function Book() {
           <a className="r-more" href={ask} target="_blank" rel="noreferrer"><Icon name="whatsapp" size={16} /> اسأل المكتبة عن هذا الكتاب</a>
         </article>
       </div>
+
+      {byAuthor.length > 0 && (
+        <section className="r-band">
+          <div className="wrap">
+            <div className="r-head"><h2>كتب أخرى لـ{book.author}</h2><Link to={authorTo(book.author)}>كل كتب المؤلف</Link></div>
+            <div className="r-strip">{byAuthor.map((b) => <Card key={b.id} book={b} />)}</div>
+          </div>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="r-band">

@@ -86,7 +86,7 @@ html[data-layout=night] .n-search input { background: none; border: 0; border-bo
 
 /* ---------- new arrivals fan ---------- */
 .n-fan { display: grid; grid-template-columns: 1.15fr 1fr; gap: 56px; align-items: center; margin-top: 90px; }
-.n-fan-photos { display: flex; justify-content: center; padding: 30px 0 20px 70px; }
+.n-fan-photos { display: flex; justify-content: center; padding: 30px 0 20px; padding-inline-start: 70px; }
 .n-fan-photos button { flex: none; width: clamp(110px, 13vw, 180px); margin-inline-start: -70px; transform: rotate(calc(var(--k) * -5deg)) translateY(calc(var(--a) * 14px)); transform-origin: bottom center; filter: brightness(.5) saturate(.8); transition: transform .45s var(--ease), filter .35s; }
 .n-fan-photos button.on { transform: translateY(-22px) scale(1.12); filter: none; z-index: 2; }
 .n-fan-photos img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: 3px; box-shadow: 0 30px 50px -20px #000; }
@@ -243,3 +243,12 @@ html[data-layout=night] .n-filters input[type=checkbox] { accent-color: var(--wo
   .n-page { padding-top: 28px; }
 }
 @media (max-width: 720px) { .n-buy .btn { min-width: 110px; } }
+html[data-layout=night] .author:hover { color: var(--wood); }
+.n-card-cap > a.n-card-by { font: 400 13.5px/1.6 var(--sans); color: var(--ink-2); justify-self: start; }
+.n-filters > div:last-child { flex-wrap: wrap; }
+.n-search .hit-ico { width: 38px; height: 48px; }
+/* the fan scales with the screen so five photos always fit: 5 x 26vw - 4 x 15vw + 15vw = 85vw */
+@media (max-width: 720px) {
+  .n-fan-photos { padding-inline-start: 15vw; }
+  .n-fan-photos button { width: 26vw; margin-inline-start: -15vw; }
+}

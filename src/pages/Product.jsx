@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { BOOKS, STORE, bookById, catName } from '../data.js'
+import { BOOKS, STORE, bookById, authorTo, catName, othersBy } from '../data.js'
 import { useStore } from '../store.jsx'
-import { BookTile, Icon, Price, Qty, WishButton } from '../ui.jsx'
+import { AuthorLink, BookTile, Icon, Price, Qty, WishButton } from '../ui.jsx'
 import { NotFound } from './Misc.jsx'
 
 export default function Product() {
@@ -12,7 +12,8 @@ export default function Product() {
   const [qty, setQty] = useState(1)
   const [added, setAdded] = useState(false)
   if (!book) return <NotFound />
-  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id).slice(0, 4)
+  const byAuthor = othersBy(book).slice(0, 4)
+  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id && !byAuthor.includes(b)).slice(0, 4)
   const ask = `${STORE.whatsapp}?text=${encodeURIComponent(`مرحبًا، أريد الاستفسار عن كتاب «${book.title}» — ${book.author}`)}`
   const buy = () => { add(book.id, qty); setAdded(true); setTimeout(() => setAdded(false), 1600) }
 
@@ -35,7 +36,7 @@ export default function Product() {
           </div>
           <h1>{book.title}</h1>
           {book.sub && <p className="product-sub">{book.sub}</p>}
-          <p className="product-author">{book.author}</p>
+          <p className="product-author">تأليف <AuthorLink name={book.author} strong /></p>
           <p className="product-desc">{book.desc}</p>
           <Price book={book} className="price-lg" />
           <div className="buy">
@@ -48,7 +49,7 @@ export default function Product() {
           {added && <button type="button" className="link" onClick={() => setDrawer(true)}>افتح السلة وأكمل الطلب</button>}
 
           <dl className="facts">
-            <div><dt>المؤلف</dt><dd>{book.author}</dd></div>
+            <div><dt>المؤلف</dt><dd><AuthorLink name={book.author} strong /></dd></div>
             <div><dt>القسم</dt><dd>{catName(book.cat)}</dd></div>
             <div><dt>التوفر</dt><dd className="ok">متوفر في المكتبة</dd></div>
             <div><dt>التوصيل</dt><dd>لجميع المحافظات، والدفع عند الاستلام</dd></div>
@@ -56,6 +57,13 @@ export default function Product() {
           <a className="btn btn-ghost" href={ask} target="_blank" rel="noreferrer"><Icon name="whatsapp" /> اسأل عن الكتاب على واتساب</a>
         </div>
       </div>
+
+      {byAuthor.length > 0 && (
+        <section className="block">
+          <div className="block-head"><h2>كتب أخرى لـ{book.author}</h2><Link to={authorTo(book.author)}>كل كتب المؤلف</Link></div>
+          <div className="grid">{byAuthor.map((b) => <BookTile key={b.id} book={b} />)}</div>
+        </section>
+      )}
 
       {related.length > 0 && (
         <section className="block">

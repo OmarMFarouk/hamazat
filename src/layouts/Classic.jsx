@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import { BOOKS, FREE_SHIPPING_FROM, STORE } from '../data.js'
+import { FREE_SHIPPING_FROM, STORE } from '../data.js'
+import { useSearch } from '../hooks.js'
 import { useStore } from '../store.jsx'
-import { Empty, Icon, Qty, money, num } from '../ui.jsx'
+import { AuthorHits, Empty, Icon, Qty, money, num } from '../ui.jsx'
 import Pages from '../Pages.jsx'
 import Home from '../pages/Home.jsx'
 import Shop from '../pages/Shop.jsx'
@@ -19,14 +20,10 @@ const NAV = [
 ]
 
 function Search() {
-  const [q, setQ] = useState('')
+  const { q, setQ, hits, authors } = useSearch()
   const [open, setOpen] = useState(false)
   const nav = useNavigate()
   const box = useRef(null)
-  const hits = useMemo(() => {
-    const s = q.trim()
-    return s ? BOOKS.filter((b) => (b.title + ' ' + b.author).includes(s)).slice(0, 6) : []
-  }, [q])
   useEffect(() => {
     const away = (e) => !box.current?.contains(e.target) && setOpen(false)
     document.addEventListener('pointerdown', away)
@@ -41,6 +38,7 @@ function Search() {
         onChange={(e) => { setQ(e.target.value); setOpen(true) }} onFocus={() => setOpen(true)} />
       {open && q.trim() && (
         <div className="search-drop">
+          <AuthorHits authors={authors} onPick={go} />
           {hits.map((b) => (
             <button type="button" key={b.id} onClick={() => go(`/book/${b.id}`)}>
               <img src={b.img} alt="" />
@@ -48,7 +46,7 @@ function Search() {
             </button>
           ))}
           {hits.length ? <button type="submit" className="search-all">عرض كل النتائج</button>
-            : <p>لا توجد نتائج لـ «{q.trim()}». جرّب اسم المؤلف.</p>}
+            : !authors.length && <p>لا توجد نتائج لـ «{q.trim()}». جرّب اسم المؤلف.</p>}
         </div>
       )}
     </form>

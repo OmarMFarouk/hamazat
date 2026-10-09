@@ -1,9 +1,9 @@
 import { CATEGORIES } from '../data.js'
 import { SORTS, useShop } from '../hooks.js'
-import { BookTile, Empty, num } from '../ui.jsx'
+import { AuthorSelect, BookTile, Empty, num } from '../ui.jsx'
 
 export default function Shop() {
-  const { cat, sets, sort, set, list, title, clear, key } = useShop()
+  const { cat, sets, author, sort, set, list, title, clear, key } = useShop()
   return (
     <div className="wrap block">
       <h1 className="page-title">{title}</h1>
@@ -16,6 +16,7 @@ export default function Shop() {
         </div>
         <div className="toolbar-end">
           <label className="check"><input type="checkbox" checked={sets} onChange={(e) => set('sets', e.target.checked ? '1' : '')} /> مجموعات فقط</label>
+          <AuthorSelect value={author} onChange={(v) => set('author', v)} />
           <label className="sort">ترتيب
             <select value={sort} onChange={(e) => set('sort', e.target.value === 'new' ? '' : e.target.value)}>
               {Object.entries(SORTS).map(([k, [name]]) => <option key={k} value={k}>{name}</option>)}

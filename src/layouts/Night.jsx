@@ -1,11 +1,11 @@
 // ليل وسط البلد — the shop after dark: walnut, lamplight, and the photos doing the talking.
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BOOKS, CATEGORIES, STORE, bookById, catName } from '../data.js'
+import { BOOKS, CATEGORIES, STORE, bookById, authorTo, catName, othersBy } from '../data.js'
 import { Coupon, DeliveryStep, PaymentStep, PlaceButton, ReviewStep, STEPS, STEP_TITLES, Summary, useCheckout } from '../checkout.jsx'
 import { SORTS, useActive, useBuy, useSearch, useShop } from '../hooks.js'
 import { useStore } from '../store.jsx'
-import { Empty, Icon, Price, Qty, WishButton, booksCount, num } from '../ui.jsx'
+import { AuthorHits, AuthorLink, AuthorSelect, Empty, Icon, Price, Qty, WishButton, booksCount, num } from '../ui.jsx'
 import Pages from '../Pages.jsx'
 import { ShippingCalc } from '../pages/Home.jsx'
 import { NotFound } from '../pages/Misc.jsx'
@@ -19,7 +19,7 @@ function Header() {
   const { pathname, search } = useLocation()
   const nav = useNavigate()
   const active = useActive()
-  const { q, setQ, hits } = useSearch()
+  const { q, setQ, hits, authors } = useSearch()
   const [scrolled, setScrolled] = useState(false)
   const [panel, setPanel] = useState(null) // 'menu' | 'search'
   useEffect(() => {
@@ -53,12 +53,13 @@ function Header() {
           <input type="search" autoFocus value={q} placeholder="ابحث عن كتاب أو مؤلف" aria-label="بحث" onChange={(e) => setQ(e.target.value)} />
           {q.trim() && (
             <div>
+              <AuthorHits authors={authors} onPick={go} />
               {hits.map((b) => (
                 <button type="button" key={b.id} onClick={() => go(`/book/${b.id}`)}>
                   <img src={b.img} alt="" /><span><b>{b.title}</b><small>{b.author}</small></span>
                 </button>
               ))}
-              {!hits.length && <p>لا يوجد كتاب بهذا الاسم. جرّب اسم المؤلف.</p>}
+              {!hits.length && !authors.length && <p>لا يوجد كتاب بهذا الاسم. جرّب اسم المؤلف.</p>}
             </div>
           )}
         </form>
@@ -82,7 +83,7 @@ function NCard({ book }) {
       <WishButton id={book.id} className="n-card-wish" />
       <div className="n-card-cap">
         <Link to={`/book/${book.id}`}>{book.title}</Link>
-        <small>{book.set && book.sub ? book.sub : book.author}</small>
+        <AuthorLink name={book.author} className="n-card-by" />
         <span><Price book={book} /><button type="button" className="n-add" onClick={() => add(book.id)}>أضف للسلة</button></span>
       </div>
     </article>
@@ -110,7 +111,7 @@ function Fan() {
         <h2>وصل حديثًا</h2>
         <div key={b.id}>
           <h3><Link to={`/book/${b.id}`}>{b.title}</Link></h3>
-          <p className="n-by">{b.author}، {catName(b.cat)}</p>
+          <p className="n-by"><AuthorLink name={b.author} strong />، {catName(b.cat)}</p>
           <p className="n-desc">{b.desc}</p>
           <div className="n-cta">
             <button type="button" className="btn btn-leaf" onClick={() => buy()}>{added ? <><Icon name="check" /> أُضيف</> : <>أضف للسلة بـ <Price book={b} /></>}</button>
@@ -160,7 +161,7 @@ function Spotlight() {
       </div>
       <div className="wrap n-spot-cap" key={b.id} aria-live="polite">
         <h3><Link to={`/book/${b.id}`}>{b.title}</Link></h3>
-        <p className="n-by">{b.author}</p>
+        <p className="n-by"><AuthorLink name={b.author} strong /></p>
         <div className="n-cta">
           <button type="button" className="btn btn-leaf" onClick={() => add(b.id)}>أضف للسلة بـ <Price book={b} /></button>
           <Link to={`/book/${b.id}`} className="btn btn-ghost">عن الكتاب</Link>
@@ -236,7 +237,7 @@ function Home() {
 }
 
 function Shop() {
-  const { cat, sets, sort, set, list, title, clear, key } = useShop()
+  const { cat, sets, author, sort, set, list, title, clear, key } = useShop()
   return (
     <div className="wrap n-page">
       <header className="n-page-head"><h1>{title}</h1><p>{booksCount(list.length)}</p></header>
@@ -248,6 +249,7 @@ function Shop() {
         </div>
         <div>
           <label className="check"><input type="checkbox" checked={sets} onChange={(e) => set('sets', e.target.checked ? '1' : '')} /> مجموعات فقط</label>
+          <AuthorSelect value={author} onChange={(v) => set('author', v)} />
           <label className="sort">ترتيب
             <select value={sort} onChange={(e) => set('sort', e.target.value === 'new' ? '' : e.target.value)}>
               {Object.entries(SORTS).map(([k, [name]]) => <option key={k} value={k}>{name}</option>)}
@@ -271,7 +273,8 @@ function Book() {
   const { setDrawer } = useStore()
   const [qty, setQty] = useState(1)
   if (!book) return <NotFound />
-  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id).slice(0, 3)
+  const byAuthor = othersBy(book).slice(0, 3)
+  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id && !byAuthor.includes(b)).slice(0, 3)
   const ask = `${STORE.whatsapp}?text=${encodeURIComponent(`مرحبًا، أريد الاستفسار عن كتاب «${book.title}» — ${book.author}`)}`
   return (
     <>
@@ -284,7 +287,7 @@ function Book() {
           </nav>
           <h1>{book.title}</h1>
           {book.sub && <p className="n-sub">{book.sub}</p>}
-          <p className="n-by">{book.author}</p>
+          <p className="n-by">تأليف <AuthorLink name={book.author} strong /></p>
           <div className="chips">
             {book.isNew && <span className="chip chip-new">وصل حديثًا</span>}
             {book.set && <span className="chip">مجموعة كاملة</span>}
@@ -306,6 +309,13 @@ function Book() {
           <a className="btn btn-ghost" href={ask} target="_blank" rel="noreferrer"><Icon name="whatsapp" /> اسأل عن الكتاب على واتساب</a>
         </article>
       </div>
+      {byAuthor.length > 0 && (
+        <section className="wrap n-block">
+          <div className="n-head"><h2>كتب أخرى لـ{book.author}</h2><Link to={authorTo(book.author)}>كل كتب المؤلف</Link></div>
+          <div className="n-grid">{byAuthor.map((b) => <NCard key={b.id} book={b} />)}</div>
+        </section>
+      )}
+
       {related.length > 0 && (
         <section className="wrap n-block">
           <div className="n-head"><h2>من نفس القسم</h2><Link to={`/shop?cat=${book.cat}`}>كل كتب {catName(book.cat)}</Link></div>

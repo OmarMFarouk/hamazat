@@ -1,11 +1,11 @@
 // الرف — browse the way you would in the shop: shelves you drag, books you pull out.
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { BOOKS, CATEGORIES, STORE, bookById, catName } from '../data.js'
+import { BOOKS, CATEGORIES, STORE, authorTo, bookById, catName, othersBy } from '../data.js'
 import { Coupon, DeliveryStep, PaymentStep, PlaceButton, Summary, useCheckout } from '../checkout.jsx'
 import { SORTS, countIn, useActive, useBuy, useSearch, useShop } from '../hooks.js'
 import { useStore } from '../store.jsx'
-import { Empty, Icon, Price, Qty, WishButton, booksCount, num } from '../ui.jsx'
+import { AuthorHits, AuthorLink, AuthorSelect, Empty, Icon, Price, Qty, WishButton, booksCount, num } from '../ui.jsx'
 import Pages from '../Pages.jsx'
 import { ShippingCalc } from '../pages/Home.jsx'
 import { NotFound } from '../pages/Misc.jsx'
@@ -18,7 +18,7 @@ const TABS = [['/', 'home', 'الرئيسية'], ['/shop', 'book', 'الكتب']
 const Quick = createContext(() => {})
 
 function SearchBox() {
-  const { q, setQ, hits } = useSearch()
+  const { q, setQ, hits, authors } = useSearch()
   const [open, setOpen] = useState(false)
   const nav = useNavigate()
   const box = useRef(null)
@@ -36,13 +36,14 @@ function SearchBox() {
         onChange={(e) => { setQ(e.target.value); setOpen(true) }} onFocus={() => setOpen(true)} />
       {open && q.trim() && (
         <div className="s-search-drop">
+          <AuthorHits authors={authors} onPick={go} />
           {hits.map((b) => (
             <button type="button" key={b.id} onClick={() => go(`/book/${b.id}`)}>
               <img src={b.img} alt="" /><span><b>{b.title}</b><small>{b.author}</small></span>
             </button>
           ))}
           {hits.length ? <button type="button" className="s-search-all" onClick={() => go(`/shop?q=${encodeURIComponent(q.trim())}`)}>كل النتائج</button>
-            : <p>لا يوجد كتاب بهذا الاسم. جرّب اسم المؤلف.</p>}
+            : !authors.length && <p>لا يوجد كتاب بهذا الاسم. جرّب اسم المؤلف.</p>}
         </div>
       )}
     </form>
@@ -100,6 +101,7 @@ function OnShelf({ book }) {
       </button>
       <div className="s-label">
         <Link to={`/book/${book.id}`}>{book.title}</Link>
+        <AuthorLink name={book.author} className="s-label-by" />
         <span><Price book={book} /><button type="button" className="s-plus" onClick={() => add(book.id)} aria-label={`أضف «${book.title}» للسلة`}><Icon name="plus" size={16} /></button></span>
       </div>
     </div>
@@ -153,7 +155,7 @@ function QuickView({ id, onClose }) {
           </div>
           <h2>{book.title}</h2>
           {book.sub && <em>{book.sub}</em>}
-          <p className="s-by">{book.author}</p>
+          <p className="s-by">تأليف <AuthorLink name={book.author} strong onClick={onClose} /></p>
           <p className="s-desc">{book.desc}</p>
           <Price book={book} className="price-lg" />
           <div className="s-buy">
@@ -232,7 +234,7 @@ function GridCard({ book }) {
       </button>
       <WishButton id={book.id} className="s-card-wish" />
       <Link to={`/book/${book.id}`} className="s-card-title">{book.title}</Link>
-      <small>{book.author}</small>
+      <AuthorLink name={book.author} className="s-card-by" />
       <div><Price book={book} /><button type="button" className="s-plus" onClick={() => add(book.id)} aria-label={`أضف «${book.title}» للسلة`}><Icon name="plus" size={16} /></button></div>
     </article>
   )
@@ -241,9 +243,9 @@ function GridCard({ book }) {
 function Shop() {
   const s = useShop()
   const [sheet, setSheet] = useState(false)
-  const filtered = s.q || s.cat !== 'all' || s.sets || s.sort !== 'new'
+  const filtered = s.q || s.author || s.cat !== 'all' || s.sets || s.sort !== 'new'
   const grid = filtered || s.sp.get('view') === 'grid'
-  const active = (s.cat !== 'all') + s.sets + (s.sort !== 'new')
+  const active = (s.cat !== 'all') + s.sets + (s.sort !== 'new') + !!s.author
   return (
     <>
       <div className="wrap s-page">
@@ -267,6 +269,7 @@ function Shop() {
             ))}
             <button type="button" aria-pressed={s.sets} onClick={() => s.set('sets', s.sets ? '' : '1')}>مجموعات فقط</button>
           </div>
+          <AuthorSelect value={s.author} onChange={(v) => s.set('author', v)} />
           <label className="sort">ترتيب
             <select value={s.sort} onChange={(e) => s.set('sort', e.target.value === 'new' ? '' : e.target.value)}>
               {Object.entries(SORTS).map(([k, [name]]) => <option key={k} value={k}>{name}</option>)}
@@ -301,7 +304,8 @@ function Book() {
   const { setDrawer } = useStore()
   const [qty, setQty] = useState(1)
   if (!book) return <NotFound />
-  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id)
+  const byAuthor = othersBy(book)
+  const related = BOOKS.filter((b) => b.cat === book.cat && b.id !== book.id && !byAuthor.includes(b))
   const ask = `${STORE.whatsapp}?text=${encodeURIComponent(`مرحبًا، أريد الاستفسار عن كتاب «${book.title}» — ${book.author}`)}`
   return (
     <>
@@ -322,7 +326,7 @@ function Book() {
             </div>
             <h1>{book.title}</h1>
             {book.sub && <em>{book.sub}</em>}
-            <p className="s-by">{book.author}</p>
+            <p className="s-by">تأليف <AuthorLink name={book.author} strong /></p>
             <p className="s-desc">{book.desc}</p>
             <Price book={book} className="price-lg" />
             <div className="s-buy">
@@ -340,6 +344,7 @@ function Book() {
           </div>
         </div>
       </div>
+      <ShelfRow title={`كتب أخرى لـ${book.author}`} to={authorTo(book.author)} books={byAuthor} />
       <ShelfRow title={`من رف ${catName(book.cat)}`} to={`/shop?cat=${book.cat}`} books={related} />
     </>
   )
@@ -414,9 +419,9 @@ function Footer() {
 
 export default function Shelf() {
   const [quick, setQuick] = useState(null)
-  const { pathname } = useLocation()
+  const { pathname, search } = useLocation()
   const close = useCallback(() => setQuick(null), [])
-  useEffect(close, [pathname, close])
+  useEffect(close, [pathname, search, close])
   return (
     <Quick.Provider value={setQuick}>
       <Header />
