@@ -15,6 +15,10 @@
   --ease: cubic-bezier(.2, .8, .2, 1);
 }
 
+/* Each layout owns its colours. "only light" tells browsers not to auto-darken the page;
+   the dark layouts opt back in through html[data-dark]. */
+:root { color-scheme: only light; }
+
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; font: 400 15px/1.75 var(--sans); color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
 img { display: block; max-width: 100%; }
