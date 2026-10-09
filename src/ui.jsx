@@ -4,6 +4,8 @@ import { useStore } from './store.jsx'
 
 export const num = (n) => Number(n).toLocaleString('ar-EG')
 export const money = (n) => `${num(n)} ج.م`
+// Arabic counts: 1 and 2 have their own forms, 3–10 take the plural, 11+ the singular
+export const booksCount = (n) => (n === 0 ? 'لا كتب' : n === 1 ? 'كتاب واحد' : n === 2 ? 'كتابان' : n <= 10 ? `${num(n)} كتب` : `${num(n)} كتابًا`)
 
 const PATHS = {
   search: 'M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16Zm10 2-4.3-4.3',
@@ -21,6 +23,13 @@ const PATHS = {
   mail: 'M3 6h18v12H3V6Zm0 0 9 7 9-7',
   box: 'M3 8l9-5 9 5v8l-9 5-9-5V8Zm0 0 9 5 9-5m-9 5v8',
   tag: 'M3 12V4h8l10 10-8 8L3 12Zm5-4h.01',
+  layout: 'M4 5h16v14H4V5Zm0 5h16M10 10v9',
+  moon: 'M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z',
+  filter: 'M4 6h16M7 12h10M10 18h4',
+  grid: 'M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 0h7v7h-7v-7Z',
+  home: 'M4 11l8-7 8 7v9h-5v-6H9v6H4v-9Z',
+  book: 'M5 4h13v16H7a2 2 0 0 1-2-2V4Zm0 14a2 2 0 0 1 2-2h11',
+  link: 'M10 14a4 4 0 0 0 5.700 0l3-3a4 4 0 0 0-5.700-5.700l-1 1M14 10a4 4 0 0 0-5.700 0l-3 3a4 4 0 0 0 5.700 5.700l1-1',
   store: 'M4 10v10h16V10M3 10l2-6h14l2 6a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0Z',
 }
 const FILLED = {

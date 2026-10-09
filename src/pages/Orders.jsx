@@ -2,7 +2,7 @@ import { Link, useParams } from 'react-router-dom'
 import { PAYMENTS, STORE } from '../data.js'
 import { useStore } from '../store.jsx'
 import { Empty, Icon, money, num } from '../ui.jsx'
-import { Summary } from './Checkout.jsx'
+import { Summary } from '../checkout.jsx'
 import { NotFound } from './Misc.jsx'
 
 const payName = (id) => PAYMENTS.find((p) => p.id === id)?.name

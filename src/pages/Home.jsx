@@ -51,7 +51,7 @@ function Feature({ book }) {
   )
 }
 
-function ShippingCalc() {
+export function ShippingCalc() {
   const [gov, setGov] = useState('القاهرة')
   const z = zoneOf(gov)
   return (

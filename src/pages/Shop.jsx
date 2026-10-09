@@ -1,32 +1,12 @@
-import { useSearchParams } from 'react-router-dom'
-import { BOOKS, CATEGORIES } from '../data.js'
+import { CATEGORIES } from '../data.js'
+import { SORTS, useShop } from '../hooks.js'
 import { BookTile, Empty, num } from '../ui.jsx'
 
-const SORTS = {
-  new: ['الأحدث', () => 0],
-  low: ['السعر: من الأقل', (a, b) => a.price - b.price],
-  high: ['السعر: من الأعلى', (a, b) => b.price - a.price],
-  title: ['العنوان', (a, b) => a.title.localeCompare(b.title, 'ar')],
-}
-
 export default function Shop() {
-  const [sp, setSp] = useSearchParams()
-  const q = sp.get('q') || ''
-  const cat = sp.get('cat') || 'all'
-  const sets = sp.get('sets') === '1'
-  const sort = SORTS[sp.get('sort')] ? sp.get('sort') : 'new'
-  const set = (k, v) => {
-    const n = new URLSearchParams(sp)
-    if (v) n.set(k, v); else n.delete(k)
-    setSp(n, { replace: true })
-  }
-  const list = BOOKS
-    .filter((b) => (cat === 'all' || b.cat === cat) && (!sets || b.set) && (!q || (b.title + ' ' + b.author).includes(q)))
-    .sort(SORTS[sort][1])
-
+  const { cat, sets, sort, set, list, title, clear, key } = useShop()
   return (
     <div className="wrap block">
-      <h1 className="page-title">{q ? `نتائج البحث عن «${q}»` : sets ? 'السلاسل والمجموعات' : 'كل الكتب'}</h1>
+      <h1 className="page-title">{title}</h1>
       <div className="toolbar">
         <div className="tabs" role="tablist">
           {[{ id: 'all', name: 'الكل' }, ...CATEGORIES].map((c) => (
@@ -45,10 +25,10 @@ export default function Shop() {
       </div>
       <p className="count">{num(list.length)} كتاب</p>
       {list.length ? (
-        <div className="grid" key={cat + sort + sets + q}>{list.map((b) => <BookTile key={b.id} book={b} />)}</div>
+        <div className="grid" key={key}>{list.map((b) => <BookTile key={b.id} book={b} />)}</div>
       ) : (
         <Empty title="لا توجد كتب بهذه المواصفات.">
-          <button type="button" className="btn btn-ghost" onClick={() => setSp({})}>امسح التصفية</button>
+          <button type="button" className="btn btn-ghost" onClick={clear}>امسح التصفية</button>
         </Empty>
       )}
     </div>

@@ -1,0 +1,51 @@
+/* Layout switcher. Fixed brand colours on purpose: it must look the same in every layout. */
+.lay { position: fixed; bottom: calc(84px + var(--fab-shift, 0px)); inset-inline-start: 20px; z-index: 45; font-family: var(--sans); }
+.lay-fab { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: #2a1709; color: #f1e3d1; border: 1px solid rgba(226, 184, 138, .5); box-shadow: 0 10px 24px -8px rgba(0, 0, 0, .45); transition: transform .25s var(--ease); }
+.lay-fab:hover { transform: scale(1.08); }
+.lay-panel { position: absolute; bottom: 64px; inset-inline-start: 0; width: min(320px, 100vw - 40px); padding: 18px; background: #fffaf3; color: #2a1709; border: 1px solid #e6d3ba; border-radius: 14px; box-shadow: 0 24px 50px -18px rgba(42, 23, 9, .5); animation: lay-in .22s var(--ease); }
+@keyframes lay-in { from { opacity: 0; transform: translateY(8px); } }
+.lay-panel h2 { font: 700 20px/1.3 var(--serif); }
+.lay-panel p { font-size: 12.5px; color: #6f5a48; margin-block: 2px 12px; }
+.lay-panel ul { display: grid; gap: 6px; }
+.lay-panel li button { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px; border: 1px solid transparent; border-radius: 10px; text-align: start; color: inherit; transition: background .2s, border-color .2s; }
+.lay-panel li button:hover { background: #f8f1e8; }
+.lay-panel li button[aria-pressed=true] { border-color: #2f7a4b; background: #f1f6f0; }
+.lay-panel li button > span:nth-child(2) { flex: 1; display: grid; line-height: 1.5; }
+.lay-panel b { font-weight: 600; font-size: 14px; }
+.lay-panel small { color: #6f5a48; font-size: 12px; }
+.lay-panel li .icon { color: #2f7a4b; }
+.lay-copy { display: flex; align-items: center; gap: 6px; margin-top: 12px; padding-block: 4px; font-size: 12.5px; color: #25633c; text-decoration: underline; text-underline-offset: 3px; }
+
+/* miniature wireframes, drawn rather than screenshotted so they never go stale */
+.lay-thumb { position: relative; flex: none; width: 60px; height: 46px; border-radius: 6px; border: 1px solid #dcc9ae; overflow: hidden; }
+.lay-thumb i { position: absolute; }
+.lay-classic { background: #fff; }
+.lay-classic i:nth-child(1) { inset: 0 0 auto; height: 8px; background: #2a1709; }
+.lay-classic i:nth-child(2) { inset: 14px 6px auto; height: 12px; background: repeating-linear-gradient(90deg, #e2b88a 0 7px, transparent 7px 10px); transform: rotate(-3deg); }
+.lay-classic i:nth-child(3) { inset: auto 6px 5px; height: 12px; background: repeating-linear-gradient(90deg, #ebe2d6 0 1px, transparent 1px 12px), linear-gradient(#ebe2d6, #ebe2d6) top / 100% 1px no-repeat; }
+.lay-reading { background: #f7efe2; }
+.lay-reading i:nth-child(1) { top: 7px; inset-inline-start: 7px; width: 17px; height: 26px; background: #e2b88a; border-radius: 9px 9px 0 0; }
+.lay-reading i:nth-child(2) { top: 9px; inset-inline-end: 7px; width: 24px; height: 5px; background: #2a1709; }
+.lay-reading i:nth-child(3) { top: 19px; inset-inline-end: 7px; width: 24px; height: 18px; background: repeating-linear-gradient(#c9b39a 0 1.500px, transparent 1.500px 5px); }
+.lay-shelf { background: #fbf6ee; }
+.lay-shelf i:nth-child(1), .lay-shelf i:nth-child(2) { inset-inline: 5px; height: 15px; background: repeating-linear-gradient(90deg, #2f7a4b 0 6px, transparent 6px 8px, #2a1709 8px 14px, transparent 14px 16px, #b98a5a 16px 22px, transparent 22px 24px) top / 100% 12px no-repeat, linear-gradient(#d6a876, #d6a876) bottom / 100% 3px no-repeat; }
+.lay-shelf i:nth-child(1) { top: 5px; }
+.lay-shelf i:nth-child(2) { top: 25px; }
+.lay-night { background: #1a0f08; border-color: #1a0f08; }
+.lay-night i:nth-child(1) { inset: 0 auto 0 0; width: 26px; background: linear-gradient(135deg, #6b4526, #2f1e12); }
+.lay-night i:nth-child(2) { top: 13px; inset-inline-start: 6px; width: 22px; height: 5px; background: #e2b88a; }
+.lay-night i:nth-child(3) { top: 23px; inset-inline-start: 6px; width: 15px; height: 8px; background: repeating-linear-gradient(#8a745c 0 1.500px, transparent 1.500px 4px); }
+
+@media (max-width: 720px) {
+  .lay { bottom: calc(68px + var(--fab-shift, 0px)); inset-inline-start: 14px; }
+  .lay-fab { width: 44px; height: 44px; }
+  .lay-panel { bottom: 54px; }
+}
+
+/* ---------- pieces every new layout shares ---------- */
+/* dark surfaces: classic components recolour through these variables */
+html[data-dark] { --on-ink: #1a0f08; --ink-h: #fff; --field: #24160c; --dash: #4a3523; color-scheme: dark; }
+html[data-dark] .pay-logo { background: #4a3523; color: #fff; }
+html[data-dark] .pay-vodafone { background: #e60000; } html[data-dark] .pay-instapay { background: #4b1d73; }
+html[data-dark] .overlay { background: rgba(0, 0, 0, .6); }
+html[data-dark] .empty img { filter: none; }
